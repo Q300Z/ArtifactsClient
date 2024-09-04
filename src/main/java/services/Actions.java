@@ -1,7 +1,20 @@
 package services;
 
 import execptions.ApiException;
-import models.*;
+import models.GETransaction.GETransactionListSchema;
+import models.bankExtension.BankExtensionTransactionSchema;
+import models.bankTransaction.BankGoldTransactionSchema;
+import models.bankTransaction.BankItemTransactionSchema;
+import models.characterFight.CharacterFightDataSchema;
+import models.characterMovement.CharacterMovementDataSchema;
+import models.commun.CharacterSchema;
+import models.equipRequest.EquipRequestSchema;
+import models.equipRequest.Slot;
+import models.recycling.RecyclingDataSchema;
+import models.skill.SkillDataSchema;
+import models.task.TaskCancelledSchema;
+import models.task.TaskDataSchema;
+import models.task.TaskRewardDataSchema;
 import okhttp3.Response;
 import org.json.JSONObject;
 import utils.*;
@@ -178,7 +191,7 @@ public class Actions {
             Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/deposit",
                     obj.toString());
             String body = Objects.requireNonNull(response.body()).string();
-
+            
             BankItemTransactionSchema res = JsonConverter.fromJson(body, "data", BankItemTransactionSchema.class);
 
             logger.info("Transaction d'Item de " + this.character.getName());
