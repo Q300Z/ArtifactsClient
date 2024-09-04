@@ -1,18 +1,8 @@
 package models;
 
-public class EquipRequestSchema {
-    private CooldownSchema cooldown;
+public class EquipRequestSchema extends CommunSchema {
     private Slot slot;
     private ItemSchema item;
-    private CharacterSchema character;
-
-    public CooldownSchema getCooldown() {
-        return cooldown;
-    }
-
-    public void setCooldown(CooldownSchema cooldown) {
-        this.cooldown = cooldown;
-    }
 
     public Slot getSlot() {
         return slot;
@@ -28,14 +18,6 @@ public class EquipRequestSchema {
 
     public void setItem(ItemSchema item) {
         this.item = item;
-    }
-
-    public CharacterSchema getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(CharacterSchema character) {
-        this.character = character;
     }
 
 }

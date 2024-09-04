@@ -1,17 +1,7 @@
 package models;
 
-public class BankGoldTransactionSchema {
-    private CooldownSchema cooldown;
+public class BankGoldTransactionSchema extends CommunSchema {
     private GoldSchema bank;
-    private CharacterSchema character;
-
-    public CooldownSchema getCooldown() {
-        return cooldown;
-    }
-
-    public void setCooldown(CooldownSchema cooldown) {
-        this.cooldown = cooldown;
-    }
 
     public GoldSchema getBank() {
         return bank;
@@ -21,12 +11,5 @@ public class BankGoldTransactionSchema {
         this.bank = bank;
     }
 
-    public CharacterSchema getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(CharacterSchema character) {
-        this.character = character;
-    }
 
 }

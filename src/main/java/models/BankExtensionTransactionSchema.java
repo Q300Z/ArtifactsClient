@@ -1,9 +1,7 @@
 package models;
 
-public class BankExtensionTransactionSchema {
-    private CooldownSchema cooldown;
+public class BankExtensionTransactionSchema extends CommunSchema {
     private BankExtensionSchema transaction;
-    private CharacterSchema character;
 
     public BankExtensionSchema getTransaction() {
         return transaction;
@@ -11,21 +9,5 @@ public class BankExtensionTransactionSchema {
 
     public void setTransaction(BankExtensionSchema transaction) {
         this.transaction = transaction;
-    }
-
-    public CooldownSchema getCooldown() {
-        return cooldown;
-    }
-
-    public void setCooldown(CooldownSchema cooldown) {
-        this.cooldown = cooldown;
-    }
-
-    public CharacterSchema getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(CharacterSchema character) {
-        this.character = character;
     }
 }
