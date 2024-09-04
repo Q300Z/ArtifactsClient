@@ -1,18 +1,19 @@
-package models;
+package models.characterFight;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum Type {
-    MONSTER, RESOURCES, CRAFTS;
+public enum Result {
+    WIN, LOSE;
 
     @JsonCreator
-    public static Type fromValue(String value) {
-        return Type.valueOf(value.toUpperCase());
+    public static Result fromValue(String value) {
+        return Result.valueOf(value.toUpperCase());
     }
 
     @JsonValue
     public String toValue() {
         return name().toLowerCase();
     }
+
 }

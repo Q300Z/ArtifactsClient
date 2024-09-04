@@ -1,14 +1,14 @@
-package models;
+package models.commun;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum Type {
-    MONSTER, RESOURCES, CRAFTS;
+public enum Skin {
+    MEN1, MEN2, MEN3, WOMEN1, WOMEN2, WOMEN3;
 
     @JsonCreator
-    public static Type fromValue(String value) {
-        return Type.valueOf(value.toUpperCase());
+    public static Skin fromValue(String value) {
+        return Skin.valueOf(value.toUpperCase());
     }
 
     @JsonValue

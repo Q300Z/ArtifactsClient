@@ -1,5 +1,8 @@
 package models;
 
+import models.commun.CharacterSchema;
+import models.commun.CooldownSchema;
+
 public class CommunSchema {
     private CooldownSchema cooldown;
     private CharacterSchema character;
