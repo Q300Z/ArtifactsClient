@@ -1,7 +1,20 @@
 package services;
 
 import execptions.ApiException;
-import models.*;
+import models.GETransaction.GETransactionListSchema;
+import models.bankExtension.BankExtensionTransactionSchema;
+import models.bankTransaction.BankGoldTransactionSchema;
+import models.bankTransaction.BankItemTransactionSchema;
+import models.characterFight.CharacterFightDataSchema;
+import models.characterMovement.CharacterMovementDataSchema;
+import models.commun.CharacterSchema;
+import models.equipRequest.EquipRequestSchema;
+import models.equipRequest.Slot;
+import models.recycling.RecyclingDataSchema;
+import models.skill.SkillDataSchema;
+import models.task.TaskCancelledSchema;
+import models.task.TaskDataSchema;
+import models.task.TaskRewardDataSchema;
 import okhttp3.Response;
 import org.json.JSONObject;
 import utils.*;
@@ -101,6 +114,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Attaque un ennemi
+     */
     public void fight() {
         try {
             Response response = this.caller.post("/my/" + this.character.getName() + "/action/fight", "");
@@ -116,6 +132,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Récolte une ressource
+     */
     public void gathering() {
         try {
             Response response = this.caller.post("/my/" + this.character.getName() + "/action/gathering", "");
@@ -131,6 +150,12 @@ public class Actions {
         }
     }
 
+
+    /**
+     * Fabrique un item
+     * @param code    : code de l'item
+     * @param quantity : quantité à fabriquer
+     */
     public void crafting(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -152,6 +177,11 @@ public class Actions {
 
     }
 
+    /**
+     * Dépose un item dans la banque
+     * @param code    : code de l'item
+     * @param quantity : quantité à déposer
+     */
     public void bank(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -161,7 +191,7 @@ public class Actions {
             Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/deposit",
                     obj.toString());
             String body = Objects.requireNonNull(response.body()).string();
-
+            
             BankItemTransactionSchema res = JsonConverter.fromJson(body, "data", BankItemTransactionSchema.class);
 
             logger.info("Transaction d'Item de " + this.character.getName());
@@ -172,6 +202,10 @@ public class Actions {
 
     }
 
+    /**
+     * Dépose de l'or dans la banque
+     * @param quantity : quantité à déposer
+     */
     public void bank(int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("quantity", quantity);
@@ -191,6 +225,11 @@ public class Actions {
 
     }
 
+    /**
+     * Retire un item de la banque
+     * @param code : code de l'item
+     * @param quantity : quantité à retirer
+     */
     public void takeInBank(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -211,6 +250,10 @@ public class Actions {
 
     }
 
+    /**
+     * Retire de l'or de la banque
+     * @param quantity : quantité à retirer
+     */
     public void takeInBank(int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("quantity", quantity);
@@ -230,6 +273,11 @@ public class Actions {
 
     }
 
+    /**
+     * Recycle un item
+     * @param code : code de l'item
+     * @param quantity : quantité à recycler
+     */
     public void recycling(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -249,6 +297,12 @@ public class Actions {
         }
     }
 
+    /**
+     * Achète un item dans le grand marché
+     * @param code : code de l'item
+     * @param quantity : quantité à acheter
+     * @param price : prix d'achat
+     */
     public void buyItem(String code, int quantity, int price) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -269,6 +323,12 @@ public class Actions {
         }
     }
 
+    /**
+     * Vend un item dans le grand marché
+     * @param code : code de l'item
+     * @param quantity : quantité à vendre
+     * @param price : prix de vente
+     */
     public void sellItem(String code, int quantity, int price) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -289,6 +349,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Achète une extension de banque
+     */
     public void buyBankExpansion() {
 
         try {
@@ -305,6 +368,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Accepte une nouvelle tâche
+     */
     public void newTask() {
 
         try {
@@ -321,6 +387,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Complète une tâche
+     */
     public void completeTask() {
 
         try {
@@ -337,6 +406,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Echange une tâche contre une récompense
+     */
     public void exchangeTask() {
 
         try {
@@ -353,6 +425,9 @@ public class Actions {
         }
     }
 
+    /**
+     * Annule une tâche
+     */
     public void cancelTask() {
 
         try {
@@ -369,6 +444,11 @@ public class Actions {
         }
     }
 
+    /**
+     * Supprime un item
+     * @param code : code de l'item
+     * @param quantity : quantité à supprimer
+     */
     public void deleteItem(String code, int quantity) {
 
         try {

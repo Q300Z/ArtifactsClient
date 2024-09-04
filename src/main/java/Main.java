@@ -1,7 +1,7 @@
 import controllers.ApiArtifacts;
 import io.github.cdimascio.dotenv.Dotenv;
-import models.CharacterSchema;
 import models.LogLevel;
+import models.commun.CharacterSchema;
 import utils.LoggerConfig;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class Main {
         CharacterSchema perso = persos[0];
 
 //	TODO : Déplacer le personnage
-	api.Actions(perso).move(0, 0);
+	api.Actions(perso).move(4, 1);
 
 //	 TODO : Faire déséquiper un item
 //	api.Actions(perso).unequip(Slot.WEAPON, 1);
@@ -42,7 +42,7 @@ public class Main {
 //	api.Actions(perso).crafting("ash_plank", 1);
 
         // TODO : Déposer en banque un item
-//	api.Actions(perso).bank("ash_plank", 1);
+	api.Actions(perso).bank("ash_wood", 1);
 
         // TODO : Déposer en banque du gold
 //	api.Actions(perso).bank(1);

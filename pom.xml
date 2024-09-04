@@ -6,6 +6,11 @@
     <artifactId>ArtifactsClient</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>ArtifactsClient</name>
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -25,7 +30,7 @@
         <dependency>
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
-            <version>3.0.0</version>
+            <version>2.3.2</version>
         </dependency>
     </dependencies>
 </project>

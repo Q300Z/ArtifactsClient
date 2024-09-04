@@ -1,7 +1,7 @@
 package controllers;
 
-import models.CharacterSchema;
-import models.StatusSchema;
+import models.commun.CharacterSchema;
+import models.status.StatusSchema;
 import okhttp3.Response;
 import services.Actions;
 import utils.Caller;
