@@ -1,5 +1,10 @@
 package services;
 
+import java.io.IOException;
+import java.util.Objects;
+
+import org.json.JSONObject;
+
 import execptions.ApiException;
 import models.GETransaction.GETransactionListSchema;
 import models.bankExtension.BankExtensionTransactionSchema;
@@ -10,17 +15,18 @@ import models.characterMovement.CharacterMovementDataSchema;
 import models.commun.CharacterSchema;
 import models.equipRequest.EquipRequestSchema;
 import models.equipRequest.Slot;
+import models.item.DeleteItemSchema;
 import models.recycling.RecyclingDataSchema;
 import models.skill.SkillDataSchema;
 import models.task.TaskCancelledSchema;
 import models.task.TaskDataSchema;
 import models.task.TaskRewardDataSchema;
 import okhttp3.Response;
-import org.json.JSONObject;
-import utils.*;
-
-import java.io.IOException;
-import java.util.Objects;
+import utils.Caller;
+import utils.JsonConverter;
+import utils.Logger;
+import utils.LoggerConfig;
+import utils.Sleep;
 
 public class Actions {
     private final Logger logger = LoggerConfig.getLogger();
@@ -33,21 +39,25 @@ public class Actions {
         this.character = character;
     }
 
+    private String RequestAPI(String action, String body) throws ApiException, IOException {
+        Response response = this.caller.post("/my/" + this.character.getName() + "/action/" + action, body);
+        return Objects.requireNonNull(response.body()).string();
+    }
+
     /**
      * Déplace le personnage à la position x et y
      *
-     * @param x : position x
-     * @param y : position y
+     * @param x int : position x
+     * @param y int : position y
      */
-    public void move(int x, int y) {
+    public CharacterMovementDataSchema move(int x, int y) {
 
         JSONObject obj = new JSONObject();
         obj.put("x", x);
         obj.put("y", y);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/move", obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("move", obj.toString());
 
             CharacterMovementDataSchema res = JsonConverter.fromJson(body, "data", CharacterMovementDataSchema.class);
 
@@ -55,19 +65,21 @@ public class Actions {
                     + Objects.requireNonNull(res).getCooldown().getRemaining_seconds() + " secondes");
 
             new Sleep(res.getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Equipe un équipement
      *
-     * @param code     : code de l'item
-     * @param slot     : slot de l'inventaire
-     * @param quantity : quantité à équiper
+     * @param code     String : code de l'item
+     * @param slot     Slot : slot de l'inventaire
+     * @param quantity int : quantité à équiper
      */
-    public void equip(String code, Slot slot, int quantity) {
+    public EquipRequestSchema equip(String code, Slot slot, int quantity) {
 
         JSONObject obj = new JSONObject();
         obj.put("code", code);
@@ -75,393 +87,408 @@ public class Actions {
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/equip", obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("equip", obj.toString());
 
             EquipRequestSchema res = JsonConverter.fromJson(body, "data", EquipRequestSchema.class);
 
             logger.info("Equipement de " + this.character.getName() + " avec " + code + " dans "
                     + Objects.requireNonNull(res).getCooldown().getRemaining_seconds() + " secondes");
             new Sleep(res.getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Déséquipe un équipement
      *
-     * @param slot     : slot de l'inventaire
-     * @param quantity : quantité à déséquiper
+     * @param slot     Slot: slot de l'inventaire
+     * @param quantity int: quantité à déséquiper
      */
-    public void unequip(Slot slot, int quantity) {
+    public EquipRequestSchema unequip(Slot slot, int quantity) {
 
         JSONObject obj = new JSONObject();
         obj.put("slot", slot.toString());
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/unequip", obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("unequip", obj.toString());
 
             EquipRequestSchema res = JsonConverter.fromJson(body, "data", EquipRequestSchema.class);
 
             logger.info("Déséquipement de " + this.character.getName() + " avec " + slot + " dans "
                     + Objects.requireNonNull(res).getCooldown().getRemaining_seconds() + " secondes");
             new Sleep(res.getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Attaque un ennemi
      */
-    public void fight() {
+    public CharacterFightDataSchema fight() {
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/fight", "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("fight", "");
 
             CharacterFightDataSchema res = JsonConverter.fromJson(body, "data", CharacterFightDataSchema.class);
 
             logger.info("Résultat du combat de " + this.character.getName() + " : "
                     + Objects.requireNonNull(res).getFight().getResult().toString() + " - Expérience : " + res.getFight().getXp());
             new Sleep(res.getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Récolte une ressource
      */
-    public void gathering() {
+    public SkillDataSchema gathering() {
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/gathering", "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("gathering", "");
 
             SkillDataSchema res = JsonConverter.fromJson(body, "data", SkillDataSchema.class);
 
             logger.info("Résultat de la récolte de " + this.character.getName() + " : Expérience :"
                     + Objects.requireNonNull(res).getDetails().getXp());
             new Sleep(res.getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
 
     /**
      * Fabrique un item
-     * @param code    : code de l'item
-     * @param quantity : quantité à fabriquer
+     *
+     * @param code     String: code de l'item
+     * @param quantity int: quantité à fabriquer
      */
-    public void crafting(String code, int quantity) {
+    public SkillDataSchema crafting(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/crafting",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("crafting", obj.toString());
 
             SkillDataSchema res = JsonConverter.fromJson(body, "data", SkillDataSchema.class);
 
             logger.info("Résultat de la fabrication de " + this.character.getName() + " : Expérience :"
                     + Objects.requireNonNull(res).getDetails().getXp());
             new Sleep(res.getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
 
     }
 
     /**
      * Dépose un item dans la banque
-     * @param code    : code de l'item
-     * @param quantity : quantité à déposer
+     *
+     * @param code     String: code de l'item
+     * @param quantity int: quantité à déposer
      */
-    public void bank(String code, int quantity) {
+    public BankItemTransactionSchema bank(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/deposit",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
-            
+            String body = RequestAPI("bank/deposit", obj.toString());
+
             BankItemTransactionSchema res = JsonConverter.fromJson(body, "data", BankItemTransactionSchema.class);
 
             logger.info("Transaction d'Item de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
 
     }
 
     /**
      * Dépose de l'or dans la banque
-     * @param quantity : quantité à déposer
+     *
+     * @param quantity int: quantité à déposer
      */
-    public void bank(int quantity) {
+    public BankGoldTransactionSchema bank(int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/deposit/gold",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("bank/deposit/gold", obj.toString());
 
             BankGoldTransactionSchema res = JsonConverter.fromJson(body, "data", BankGoldTransactionSchema.class);
 
             logger.info("Transaction d'Or de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
 
     }
 
     /**
      * Retire un item de la banque
-     * @param code : code de l'item
-     * @param quantity : quantité à retirer
+     *
+     * @param code     String: code de l'item
+     * @param quantity int : quantité à retirer
      */
-    public void takeInBank(String code, int quantity) {
+    public BankItemTransactionSchema takeInBank(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/withdraw",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("bank/withdraw", obj.toString());
 
             BankItemTransactionSchema res = JsonConverter.fromJson(body, "data", BankItemTransactionSchema.class);
 
             logger.info("Transaction d'Item de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
 
     }
 
     /**
      * Retire de l'or de la banque
-     * @param quantity : quantité à retirer
+     *
+     * @param quantity int: quantité à retirer
      */
-    public void takeInBank(int quantity) {
+    public BankGoldTransactionSchema takeInBank(int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/withdraw/gold",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("bank/withdraw/gold", obj.toString());
 
             BankGoldTransactionSchema res = JsonConverter.fromJson(body, "data", BankGoldTransactionSchema.class);
 
             logger.info("Transaction d'Or de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
 
     }
 
     /**
      * Recycle un item
-     * @param code : code de l'item
-     * @param quantity : quantité à recycler
+     *
+     * @param code     String: code de l'item
+     * @param quantity int: quantité à recycler
      */
-    public void recycling(String code, int quantity) {
+    public RecyclingDataSchema recycling(String code, int quantity) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
         obj.put("quantity", quantity);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/recycling",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("recycling", obj.toString());
 
             RecyclingDataSchema res = JsonConverter.fromJson(body, "data", RecyclingDataSchema.class);
 
             logger.info("Recyclage de l'item " + code + " de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Achète un item dans le grand marché
-     * @param code : code de l'item
-     * @param quantity : quantité à acheter
-     * @param price : prix d'achat
+     *
+     * @param code     String: code de l'item
+     * @param quantity int: quantité à acheter
+     * @param price    int: prix d'achat
      */
-    public void buyItem(String code, int quantity, int price) {
+    public GETransactionListSchema buyItem(String code, int quantity, int price) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
         obj.put("quantity", quantity);
         obj.put("price", price);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/ge/buy",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("ge/buy", obj.toString());
 
             GETransactionListSchema res = JsonConverter.fromJson(body, "data", GETransactionListSchema.class);
 
             logger.info("Achat de l'item " + code + " de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Vend un item dans le grand marché
-     * @param code : code de l'item
-     * @param quantity : quantité à vendre
-     * @param price : prix de vente
+     *
+     * @param code     String : code de l'item
+     * @param quantity int: quantité à vendre
+     * @param price    int : prix de vente
      */
-    public void sellItem(String code, int quantity, int price) {
+    public GETransactionListSchema sellItem(String code, int quantity, int price) {
         JSONObject obj = new JSONObject();
         obj.put("code", code);
         obj.put("quantity", quantity);
         obj.put("price", price);
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/ge/sell",
-                    obj.toString());
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("ge/sell", obj.toString());
 
             GETransactionListSchema res = JsonConverter.fromJson(body, "data", GETransactionListSchema.class);
 
             logger.info("Vente de l'item " + code + " de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Achète une extension de banque
      */
-    public void buyBankExpansion() {
+    public BankExtensionTransactionSchema buyBankExpansion() {
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/bank/buy_expansion",
-                    "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("bank/buy_expansion", "");
 
             BankExtensionTransactionSchema res = JsonConverter.fromJson(body, "data", BankExtensionTransactionSchema.class);
 
             logger.info("Achat d'une extension de banque pour " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Accepte une nouvelle tâche
      */
-    public void newTask() {
+    public TaskDataSchema newTask() {
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/task/new",
-                    "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("task/new", "");
 
             TaskDataSchema res = JsonConverter.fromJson(body, "data", TaskDataSchema.class);
 
             logger.info("Nouvelle tâche accepter pour " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Complète une tâche
      */
-    public void completeTask() {
+    public TaskRewardDataSchema completeTask() {
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/task/complete",
-                    "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("task/complete", "");
 
             TaskRewardDataSchema res = JsonConverter.fromJson(body, "data", TaskRewardDataSchema.class);
 
             logger.info("Tâche complété pour " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Echange une tâche contre une récompense
      */
-    public void exchangeTask() {
+    public TaskRewardDataSchema exchangeTask() {
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/task/exchange",
-                    "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("task/exchange", "");
 
             TaskRewardDataSchema res = JsonConverter.fromJson(body, "data", TaskRewardDataSchema.class);
 
             logger.info("Tâche échanger pour " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Annule une tâche
      */
-    public void cancelTask() {
+    public TaskCancelledSchema cancelTask() {
 
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/task/cancel",
-                    "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("task/cancel", "");
 
             TaskCancelledSchema res = JsonConverter.fromJson(body, "data", TaskCancelledSchema.class);
 
             logger.info("Tâche annulé pour " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * Supprime un item
-     * @param code : code de l'item
-     * @param quantity : quantité à supprimer
+     *
+     * @param code     String: code de l'item
+     * @param quantity int: quantité à supprimer
      */
-    public void deleteItem(String code, int quantity) {
-
+    public DeleteItemSchema deleteItem(String code, int quantity) {
+        JSONObject obj = new JSONObject();
+        obj.put("code", code);
+        obj.put("quantity", quantity);
         try {
-            Response response = this.caller.post("/my/" + this.character.getName() + "/action/delete",
-                    "");
-            String body = Objects.requireNonNull(response.body()).string();
+            String body = RequestAPI("delete", obj.toString());
 
-            TaskCancelledSchema res = JsonConverter.fromJson(body, "data", TaskCancelledSchema.class);
+            DeleteItemSchema res = JsonConverter.fromJson(body, "data", DeleteItemSchema.class);
 
             logger.info("Suppression de l'item " + code + " de " + this.character.getName());
             new Sleep(Objects.requireNonNull(res).getCooldown().getRemaining_seconds());
+            return res;
         } catch (IOException | ApiException e) {
             logger.warning("Erreur : " + e.getMessage());
+            return null;
         }
     }
 

@@ -4,6 +4,7 @@ import models.commun.CharacterSchema;
 import models.status.StatusSchema;
 import okhttp3.Response;
 import services.Actions;
+import services.Maps;
 import utils.Caller;
 import utils.JsonConverter;
 import utils.Logger;
@@ -28,6 +29,10 @@ public class ApiArtifacts {
 
     public Actions Actions(CharacterSchema character) {
         return new Actions(this.caller, character);
+    }
+    
+    public Maps Maps() {
+        return new Maps(this.caller);
     }
 
     // Récupére l'état de l'api
